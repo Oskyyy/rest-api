@@ -20,7 +20,7 @@ const ADD_SEAT = createActionName('ADD_SEAT');
 
 export const startRequest = payload => ({ payload, type: START_REQUEST });
 export const endRequest = payload => ({ payload, type: END_REQUEST });
-export const errorRequest = error => ({ error, type: ERROR_REQUEST });
+export const errorRequest = payload => ({ payload, type: ERROR_REQUEST });
 
 export const loadSeats = payload => ({ payload, type: LOAD_SEATS });
 export const addSeat = payload => ({ payload, type: ADD_SEAT });
