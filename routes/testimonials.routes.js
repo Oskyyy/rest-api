@@ -1,45 +1,50 @@
 const express = require('express');
-const router = express.Router();
 const db = require('../db');
+const router = express.Router();
+const uuidv1 = require('uuid/v1');
 
 router.route('/testimonials').get((req, res) => {
   res.json(db.testimonials);
 });
 
-router.route('/testimonials/:id').get((req, res) => {
-  let newDb = db.testimonials.filter((item) => {
-    return item.id == req.params.id;
-  })
-  res.json(newDb);
+router.route('/testimonials/random').get((req, res) => {
+  const randomPost = Math.floor(Math.random() * db.testimonials.length);
+  res.json(db.testimonials[randomPost]);
 });
 
-router.route('/testimonials/').post((req, res) => {
-  const { author, text } = req.body;
-  db.testimonials.push({id: (db.testimonials[db.testimonials.length -1].id +1) ,author, text});
-  res.send({ message: 'OK' });
+router.route('/testimonials/:id').get((req, res) => {
+  for(let post of db.testimonials){
+    if(post.id == req.params.id){
+      res.json(post);
+    };
+  };
 });
+
+router.route('/testimonials').post((req, res) => {
+  const {author, text} = req.body;
+  const newPost = {author: author, text: text, id: uuidv1()};
+  db.testimonials.push(newPost);
+  res.json({message: 'OK'});
+})
 
 router.route('/testimonials/:id').put((req, res) => {
-  const { author, text } = req.body;  
-  const { id } = req.params;
-
-  db.testimonials.map((item) => {
-    if(item.id == id){
-      item.author = author;
-      item.text = text;
-      return item;
-    }
-    return item;
-  });
-  res.send({ message: 'OK' }); 
-});
+  const {author, text} = req.body;
+  for(let post of db.testimonials){
+    if(post.id == req.params.id){
+      post.author = author;
+      post.text = text;
+    };
+  };
+  res.json({message: 'OK'});
+})
 
 router.route('/testimonials/:id').delete((req, res) => {
-  const { id } = req.params;
-  db.testimonials = db.testimonials.filter((item) => {
-    return item.id != id;
-  })
-  res.send({ message: 'OK' });
-});
+  for(let post of db.testimonials){
+    if(post.id == req.params.id){
+      db.testimonials.splice(db.testimonials.indexOf(post));
+    };
+  };
+  res.json({message: 'OK'});
+})
 
-module.exports = router;
+module.exports = router
