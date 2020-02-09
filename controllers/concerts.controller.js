@@ -1,61 +1,85 @@
 const Concert = require('../models/concert.model');
+const Seat = require('../models/seat.model');
 
 exports.getAll = async (req, res) => {
   try {
+    const seats = await Seat.find();
+    const gigs = await Concert.find();
+    for (let gig of gigs) {
+      let seatsTaken = 0;
+      for (let seat of seats) {
+        if (gig.day === seat.day) {
+          seatsTaken += 1;
+        }
+      }
+      gig.tickets = 50-seatsTaken
+      await (gig.save());
+    }
     res.json(await Concert.find());
   }
   catch(err) {
-    res.status(500).json(err);
+    res.status(500).json(err); 
   }
 }
 
-exports.getSingle = async (req, res) => {
+exports.getRandom = async (req, res) => {
   try {
-    const conc = await Concert.findById(req.params.id);
-    if(!conc) res.status(404).json({message: 'Not Found'});
-    else res.json(conc);
+    const count = await Concert.countDocuments();
+    const rand = Math.floor(Math.random() * count);
+    const dep = await Concert.findOne().skip(rand);
+    if(!dep) res.status(404).json({message: 'Not found' });
+    else res.json(dep);
+  }
+  catch(err) {
+    res.json(err);
+  }
+}
+
+exports.getOne = async (req, res) => {
+  try {
+    const dep = await Concert.findById(req.params.id);
+    if(!dep) res.status(404).json({message: 'Not found'})
+    else res.json(dep);
   }
   catch(err) {
     res.status(500).json(err);
   }
 }
 
-exports.postSingle = async (req, res) => {
-  try{
-    const { performer, genre, price, day, image } = req.body;
-    const newConcert = new Concert({ performer: performer, genre: genre, price: price, day: day, image: image });
-    
+exports.postOne = async (req, res) => {
+  try {
+    const { name } = req.body;
+    const newConcert = new Concert({name: name});
     await newConcert.save();
     res.json({ message: 'OK' });
-  }
-  catch(err) {
-    res.status(500).json(err);
-  }
-};
-
-exports.updateSingle = async (req, res) => {
-  try {
-    const { performer, genre, price, day, image } = req.body;
-    const conc = await Concert.findById(req.params.id);
-    if(!conc) res.status(404).json({message: 'Not Found'});
-    else {
-      await Concert.updateOne({ _id: req.params.id }, { $set: { performer: performer, genre: genre, price: price, day: day, image: image }});
-      res.json({ message: 'OK '})
-    }
-  }
-  catch(err) {
+  } catch(err) {
     res.status(500).json(err);
   }
 }
 
-exports.deleteSingle = async (req, res) => {
+exports.putOne = async (req, res) => {
   try {
-    const conc = await Concert.findById(req.params.id);
-    if(!conc) res.status(404).json({message: 'Not Found'});
-    else {
+    const { name } = req.body;
+    const dep = await(Concert.findById(req.params.id));
+    if (dep) {
+      dep.name = name;
+      await (dep.save());
+      res.json(await Concert.find());
+    } else res.status(404).json({ message: 'Not found'});
+  }
+  catch(err) {
+    res.status(500).json(err);
+  };
+}
+
+exports.deleteOne = async (req, res) => {
+  try {
+    const dep = await(Concert.findById(req.params.id));
+    if(dep) {
       await Concert.deleteOne({ _id: req.params.id });
-      res.json({ message: 'OK' });
+      res.json(await Concert.find());
     }
+    else res.status(404).json({ message: 'Not found...' });
   }
   catch(err) {
     res.status(500).json(err);
