@@ -6,7 +6,7 @@
   "author": "Oskyyy <oskarwro@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "bootstrap": "^4.4.1",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
